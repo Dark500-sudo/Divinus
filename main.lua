@@ -1,8 +1,8 @@
--- Password-protected DIVINUS GUI Loader
+-- Password-protected DIVINUS GUI Loader with Sidebar and Toggle Hotkey
 
 local PASSWORD = "Divinus123"
 
--- Password GUI
+-- Create password GUI
 local passwordGui = Instance.new("ScreenGui")
 passwordGui.Name = "DivinusPasswordGui"
 passwordGui.ResetOnSpawn = false
@@ -47,6 +47,7 @@ local function showError()
     passwordBox.Text = ""
 end
 
+-- Wait for Enter key
 passwordBox.FocusLost:Connect(function(enterPressed)
     if not enterPressed then return end
 
@@ -58,7 +59,7 @@ passwordBox.FocusLost:Connect(function(enterPressed)
     end
 end)
 
--- Create the full GUI with sidebar and tabs
+-- Main GUI function
 function createDivinusGUI()
     local gui = Instance.new("ScreenGui")
     gui.Name = "DivinusGUI"
@@ -73,7 +74,6 @@ function createDivinusGUI()
     mainFrame.BorderSizePixel = 0
     mainFrame.Parent = gui
 
-    -- Sidebar
     local sidebar = Instance.new("Frame")
     sidebar.Size = UDim2.new(0, 100, 1, 0)
     sidebar.Position = UDim2.new(0, 0, 0, 0)
@@ -81,16 +81,6 @@ function createDivinusGUI()
     sidebar.BorderSizePixel = 0
     sidebar.Parent = mainFrame
 
-    local categories = {
-        "Aimbot",
-        "Misc",
-        "Settings"
-    }
-
-    local currentTab = nil
-    local contentFrames = {}
-
-    -- Content Panel
     local contentArea = Instance.new("Frame")
     contentArea.Size = UDim2.new(1, -100, 1, 0)
     contentArea.Position = UDim2.new(0, 100, 0, 0)
@@ -98,7 +88,10 @@ function createDivinusGUI()
     contentArea.BorderSizePixel = 0
     contentArea.Parent = mainFrame
 
-    -- Create placeholder pages for each category
+    local categories = {"Aimbot", "Misc", "Settings"}
+    local contentFrames = {}
+    local currentTab = nil
+
     for i, categoryName in ipairs(categories) do
         local button = Instance.new("TextButton")
         button.Size = UDim2.new(1, 0, 0, 40)
@@ -130,16 +123,20 @@ function createDivinusGUI()
         contentFrames[categoryName] = contentFrame
 
         button.MouseButton1Click:Connect(function()
-            if currentTab then
-                currentTab.Visible = false
-            end
+            if currentTab then currentTab.Visible = false end
             contentFrame.Visible = true
             currentTab = contentFrame
         end)
 
-        -- Auto-select first tab
-        if i == 1 then
-            button:MouseButton1Click()
-        end
+        if i == 1 then button:MouseButton1Click() end
     end
+
+    -- ⭐ RightShift toggle
+    local UserInputService = game:GetService("UserInputService")
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.KeyCode == Enum.KeyCode.RightShift then
+            gui.Enabled = not gui.Enabled
+        end
+    end)
 end
