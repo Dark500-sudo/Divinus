@@ -1,142 +1,95 @@
--- Password-protected DIVINUS GUI Loader with Sidebar and Toggle Hotkey
+--[[
+    DIVINUS Main Loader + Utils
+    Loads password screen and imports the GUI + tab modules
+--]]
 
 local PASSWORD = "Divinus123"
+local HttpService = game:GetService("HttpService")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
 
--- Create password GUI
-local passwordGui = Instance.new("ScreenGui")
-passwordGui.Name = "DivinusPasswordGui"
-passwordGui.ResetOnSpawn = false
-passwordGui.IgnoreGuiInset = true
-passwordGui.Parent = game:GetService("CoreGui")
-
-local passwordFrame = Instance.new("Frame")
-passwordFrame.Size = UDim2.new(0, 300, 0, 120)
-passwordFrame.Position = UDim2.new(0.5, -150, 0.4, 0)
-passwordFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-passwordFrame.BorderSizePixel = 0
-passwordFrame.Parent = passwordGui
-
-local promptLabel = Instance.new("TextLabel")
-promptLabel.Size = UDim2.new(1, -20, 0, 40)
-promptLabel.Position = UDim2.new(0, 10, 0, 10)
-promptLabel.BackgroundTransparency = 1
-promptLabel.Text = "Enter Password to Load Divinus"
-promptLabel.Font = Enum.Font.GothamBold
-promptLabel.TextSize = 20
-promptLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-promptLabel.Parent = passwordFrame
-
-local passwordBox = Instance.new("TextBox")
-passwordBox.Size = UDim2.new(1, -20, 0, 40)
-passwordBox.Position = UDim2.new(0, 10, 0, 60)
-passwordBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-passwordBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-passwordBox.Font = Enum.Font.Gotham
-passwordBox.TextSize = 24
-passwordBox.PlaceholderText = "Password"
-passwordBox.ClearTextOnFocus = true
-passwordBox.Parent = passwordFrame
-passwordBox.Text = ""
-
-local function showError()
-    promptLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
-    promptLabel.Text = "Incorrect password! Try again."
-    task.wait(2)
-    promptLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    promptLabel.Text = "Enter Password to Load Divinus"
-    passwordBox.Text = ""
+-- Load module from GitHub
+local function requireFromURL(url)
+    local success, result = pcall(function()
+        return loadstring(game:HttpGet(url))()
+    end)
+    if success then return result end
+    warn("[DIVINUS] Failed to load module:", url)
+    return nil
 end
 
--- Wait for Enter key
-passwordBox.FocusLost:Connect(function(enterPressed)
-    if not enterPressed then return end
-
-    if passwordBox.Text == PASSWORD then
-        passwordGui:Destroy()
-        createDivinusGUI()
-    else
-        showError()
-    end
-end)
-
--- Main GUI function
-function createDivinusGUI()
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "DivinusGUI"
-    gui.ResetOnSpawn = false
+-- Build password prompt
+local function showPasswordPrompt(callback)
+    local gui = Instance.new("ScreenGui", CoreGui)
+    gui.Name = "DivinusPasswordGui"
     gui.IgnoreGuiInset = true
-    gui.Parent = game:GetService("CoreGui")
+    gui.ResetOnSpawn = false
 
-    local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 400, 0, 300)
-    mainFrame.Position = UDim2.new(0.5, -200, 0.4, 0)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    mainFrame.BorderSizePixel = 0
-    mainFrame.Parent = gui
+    local frame = Instance.new("Frame", gui)
+    frame.Size = UDim2.new(0, 300, 0, 120)
+    frame.Position = UDim2.new(0.5, -150, 0.4, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    frame.BorderSizePixel = 0
 
-    local sidebar = Instance.new("Frame")
-    sidebar.Size = UDim2.new(0, 100, 1, 0)
-    sidebar.Position = UDim2.new(0, 0, 0, 0)
-    sidebar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    sidebar.BorderSizePixel = 0
-    sidebar.Parent = mainFrame
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
 
-    local contentArea = Instance.new("Frame")
-    contentArea.Size = UDim2.new(1, -100, 1, 0)
-    contentArea.Position = UDim2.new(0, 100, 0, 0)
-    contentArea.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    contentArea.BorderSizePixel = 0
-    contentArea.Parent = mainFrame
+    local label = Instance.new("TextLabel", frame)
+    label.Size = UDim2.new(1, -20, 0, 40)
+    label.Position = UDim2.new(0, 10, 0, 10)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 20
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Text = "Enter Password to Load Divinus"
 
-    local categories = {"Aimbot", "Misc", "Settings"}
-    local contentFrames = {}
-    local currentTab = nil
+    local box = Instance.new("TextBox", frame)
+    box.Size = UDim2.new(1, -20, 0, 40)
+    box.Position = UDim2.new(0, 10, 0, 60)
+    box.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    box.Font = Enum.Font.Gotham
+    box.TextSize = 24
+    box.PlaceholderText = "Password"
+    box.TextColor3 = Color3.fromRGB(255, 255, 255)
+    box.Text = ""
 
-    for i, categoryName in ipairs(categories) do
-        local button = Instance.new("TextButton")
-        button.Size = UDim2.new(1, 0, 0, 40)
-        button.Position = UDim2.new(0, 0, 0, (i - 1) * 40)
-        button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        button.Text = categoryName
-        button.TextColor3 = Color3.fromRGB(255, 255, 255)
-        button.Font = Enum.Font.GothamBold
-        button.TextSize = 18
-        button.Parent = sidebar
+    Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6)
 
-        local contentFrame = Instance.new("Frame")
-        contentFrame.Size = UDim2.new(1, 0, 1, 0)
-        contentFrame.Position = UDim2.new(0, 0, 0, 0)
-        contentFrame.BackgroundTransparency = 1
-        contentFrame.Visible = false
-        contentFrame.Parent = contentArea
-
-        local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(1, 0, 0, 30)
-        label.Position = UDim2.new(0, 0, 0, 10)
-        label.BackgroundTransparency = 1
-        label.Text = categoryName .. " Content"
+    local function fail()
+        label.Text = "Wrong Password!"
+        label.TextColor3 = Color3.fromRGB(255, 80, 80)
+        task.wait(2)
+        label.Text = "Enter Password to Load Divinus"
         label.TextColor3 = Color3.fromRGB(255, 255, 255)
-        label.Font = Enum.Font.Gotham
-        label.TextSize = 20
-        label.Parent = contentFrame
-
-        contentFrames[categoryName] = contentFrame
-
-        button.MouseButton1Click:Connect(function()
-            if currentTab then currentTab.Visible = false end
-            contentFrame.Visible = true
-            currentTab = contentFrame
-        end)
-
-        if i == 1 then button:MouseButton1Click() end
+        box.Text = ""
     end
 
-    -- ⭐ RightShift toggle
-    local UserInputService = game:GetService("UserInputService")
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
-        if input.KeyCode == Enum.KeyCode.RightShift then
-            gui.Enabled = not gui.Enabled
+    box.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            if box.Text == PASSWORD then
+                gui:Destroy()
+                callback()
+            else
+                fail()
+            end
         end
     end)
 end
+
+-- ✅ ENTRY POINT
+showPasswordPrompt(function()
+    -- Load GUI layout
+    local guiModule = requireFromURL("https://raw.githubusercontent.com/YourUsername/Divinus/main/gui.lua")
+    if not guiModule then return end
+
+    -- Initialize GUI and get tab system
+    local divinus = guiModule.create()
+
+    -- Load category content
+    local aimbot = requireFromURL("https://raw.githubusercontent.com/YourUsername/Divinus/main/modules/aimbot.lua")
+    local misc = requireFromURL("https://raw.githubusercontent.com/YourUsername/Divinus/main/modules/misc.lua")
+    local settings = requireFromURL("https://raw.githubusercontent.com/YourUsername/Divinus/main/modules/settings.lua")
+
+    if aimbot then aimbot(divinus.getTab("Aimbot")) end
+    if misc then misc(divinus.getTab("Misc")) end
+    if settings then settings(divinus.getTab("Settings")) end
+end)
