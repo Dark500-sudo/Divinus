@@ -1,5 +1,4 @@
--- Divinus Loader + Main GUI by ChatGPT
---DIVINUS
+-- DIVINUS Loader + Main GUI by ChatGPT
 
 if getgenv().divinusLoaderLoaded then return end
 getgenv().divinusLoaderLoaded = true
@@ -8,7 +7,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
--- Helper function for hover tween
+-- Helper: Hover effect for buttons
 local function addHoverEffect(button, hoverColor, normalColor)
     local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
     button.MouseEnter:Connect(function()
@@ -19,7 +18,7 @@ local function addHoverEffect(button, hoverColor, normalColor)
     end)
 end
 
--- DRAGGING FUNCTION (used by both windows)
+-- Dragging function
 local function makeDraggable(frame)
     local dragging, dragInput, dragStart, startPos
     local UserInputService = game:GetService("UserInputService")
@@ -56,7 +55,7 @@ local function makeDraggable(frame)
     end)
 end
 
--- MAIN ScreenGui container
+-- Main container
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "DivinusUI"
 screenGui.ResetOnSpawn = false
@@ -136,7 +135,7 @@ local submitBtnCorner = Instance.new("UICorner", submitBtn)
 submitBtnCorner.CornerRadius = UDim.new(0, 6)
 addHoverEffect(submitBtn, Color3.fromRGB(85, 85, 85), submitBtn.BackgroundColor3)
 
--- Error label (initially hidden)
+-- Error label (hidden initially)
 local errorLabel = Instance.new("TextLabel")
 errorLabel.Name = "ErrorLabel"
 errorLabel.Size = UDim2.new(1, -40, 0, 25)
@@ -148,31 +147,6 @@ errorLabel.TextSize = 14
 errorLabel.Text = ""
 errorLabel.TextXAlignment = Enum.TextXAlignment.Center
 errorLabel.Parent = loaderFrame
-
--- Password check function
-local function onPasswordEntered(password)
-    local correctPassword = "divinus123" -- change this!
-
-    if password == correctPassword then
-        -- Success: Hide loader and show main GUI
-        loaderFrame.Visible = false
-        errorLabel.Text = ""
-
-        mainGuiFrame.Visible = true
-    else
-        -- Show error
-        errorLabel.Text = "Incorrect password. Try again."
-    end
-end
-
-submitBtn.MouseButton1Click:Connect(function()
-    onPasswordEntered(passBox.Text)
-end)
-passBox.FocusLost:Connect(function(enterPressed)
-    if enterPressed then
-        onPasswordEntered(passBox.Text)
-    end
-end)
 
 -- ========== MAIN GUI WINDOW ========== --
 
@@ -206,7 +180,7 @@ mainGuiTitle.TextSize = 20
 mainGuiTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 mainGuiTitle.Parent = mainGuiHeader
 
--- Left Sidebar (Tabs container)
+-- Sidebar with Tabs
 local sidebar = Instance.new("Frame")
 sidebar.Size = UDim2.new(0, 120, 1, 0)
 sidebar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -215,7 +189,6 @@ sidebar.Parent = mainGuiFrame
 local sidebarCorner = Instance.new("UICorner", sidebar)
 sidebarCorner.CornerRadius = UDim.new(0, 8)
 
--- Tab buttons list
 local tabs = {"Aimbot", "Misc", "Settings"}
 local tabButtons = {}
 local tabContents = {}
@@ -247,7 +220,6 @@ local function createTabContent(name)
     local contentCorner = Instance.new("UICorner", contentFrame)
     contentCorner.CornerRadius = UDim.new(0, 8)
 
-    -- Example placeholder label inside each tab
     local placeholder = Instance.new("TextLabel")
     placeholder.Size = UDim2.new(1, -20, 1, -20)
     placeholder.Position = UDim2.new(0, 10, 0, 10)
@@ -271,7 +243,6 @@ for i, tabName in ipairs(tabs) do
     tabContents[tabName] = content
 end
 
--- Function to switch tabs
 local function setActiveTab(name)
     for tabName, btn in pairs(tabButtons) do
         if tabName == name then
@@ -284,18 +255,37 @@ local function setActiveTab(name)
     end
 end
 
--- Default active tab
 setActiveTab("Aimbot")
 
--- Connect buttons
 for tabName, btn in pairs(tabButtons) do
     btn.MouseButton1Click:Connect(function()
         setActiveTab(tabName)
     end)
 end
 
--- ========== TOGGLE VISIBILITY WITH RightShift ========== --
+-- PASSWORD CHECK FUNCTION
+local function onPasswordEntered(password)
+    local correctPassword = "divinus123" -- Change to your password
 
+    if password == correctPassword then
+        loaderFrame.Visible = false
+        errorLabel.Text = ""
+        mainGuiFrame.Visible = true
+    else
+        errorLabel.Text = "Incorrect password. Try again."
+    end
+end
+
+submitBtn.MouseButton1Click:Connect(function()
+    onPasswordEntered(passBox.Text)
+end)
+passBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        onPasswordEntered(passBox.Text)
+    end
+end)
+
+-- TOGGLE GUI WITH RightShift
 local guiVisible = true
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
