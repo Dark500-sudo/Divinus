@@ -1,24 +1,29 @@
---[[
-    DIVINUS Main Loader + Utils
-    Loads password screen and imports the GUI + tab modules
---]]
-
+-- DIVINUS Main Loader + Utils
 local PASSWORD = "Divinus123"
 local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 
--- Load module from GitHub
-local function requireFromURL(url)
+local GITHUB_USERNAME = "Dark500-sudo"
+local REPO = "Divinus"
+local BRANCH = "main"
+
+-- Helper to load raw scripts from GitHub
+local function requireFromURL(path)
+    local url = ("https://raw.githubusercontent.com/%s/%s/%s/%s"):format(GITHUB_USERNAME, REPO, BRANCH, path)
     local success, result = pcall(function()
         return loadstring(game:HttpGet(url))()
     end)
-    if success then return result end
-    warn("[DIVINUS] Failed to load module:", url)
-    return nil
+    if success then
+        return result
+    else
+        warn("[DIVINUS] Failed to load:", url)
+        warn("[DIVINUS] Error:", result)
+        return nil
+    end
 end
 
--- Build password prompt
+-- Password prompt GUI
 local function showPasswordPrompt(callback)
     local gui = Instance.new("ScreenGui", CoreGui)
     gui.Name = "DivinusPasswordGui"
@@ -30,7 +35,6 @@ local function showPasswordPrompt(callback)
     frame.Position = UDim2.new(0.5, -150, 0.4, 0)
     frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     frame.BorderSizePixel = 0
-
     Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
 
     local label = Instance.new("TextLabel", frame)
@@ -51,7 +55,6 @@ local function showPasswordPrompt(callback)
     box.PlaceholderText = "Password"
     box.TextColor3 = Color3.fromRGB(255, 255, 255)
     box.Text = ""
-
     Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6)
 
     local function fail()
@@ -75,21 +78,22 @@ local function showPasswordPrompt(callback)
     end)
 end
 
--- ✅ ENTRY POINT
+-- Main entry point
 showPasswordPrompt(function()
-    -- Load GUI layout
-    local guiModule = requireFromURL("https://raw.githubusercontent.com/YourUsername/Divinus/main/gui.lua")
+    print("[DIVINUS] Password accepted, loading GUI...")
+
+    local guiModule = requireFromURL("gui.lua")
     if not guiModule then return end
 
-    -- Initialize GUI and get tab system
     local divinus = guiModule.create()
 
-    -- Load category content
-    local aimbot = requireFromURL("https://raw.githubusercontent.com/YourUsername/Divinus/main/modules/aimbot.lua")
-    local misc = requireFromURL("https://raw.githubusercontent.com/YourUsername/Divinus/main/modules/misc.lua")
-    local settings = requireFromURL("https://raw.githubusercontent.com/YourUsername/Divinus/main/modules/settings.lua")
+    local aimbot = requireFromURL("modules/aimbot.lua")
+    local misc = requireFromURL("modules/misc.lua")
+    local settings = requireFromURL("modules/settings.lua")
 
     if aimbot then aimbot(divinus.getTab("Aimbot")) end
     if misc then misc(divinus.getTab("Misc")) end
     if settings then settings(divinus.getTab("Settings")) end
+
+    print("[DIVINUS] GUI loaded successfully.")
 end)
