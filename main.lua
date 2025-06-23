@@ -1,101 +1,107 @@
 -- DIVINUS Main Loader + Utils
 -- DIVINUS
 
-local PASSWORD = "Divinus123"
-local HttpService = game:GetService("HttpService")
+print("[DIVINUS GUI] gui.lua loaded")
+
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 
-local GITHUB_USERNAME = "Dark500-sudo"
-local REPO = "Divinus"
-local BRANCH = "main"
+local module = {}
 
--- Helper to load raw scripts from GitHub
-local function requireFromURL(path)
-    local url = ("https://raw.githubusercontent.com/%s/%s/%s/%s"):format(GITHUB_USERNAME, REPO, BRANCH, path)
-    local success, result = pcall(function()
-        return loadstring(game:HttpGet(url))()
-    end)
-    if success then
-        return result
-    else
-        warn("[DIVINUS] Failed to load:", url)
-        warn("[DIVINUS] Error:", result)
-        return nil
-    end
-end
+function module.create()
+    print("[DIVINUS GUI] create() called")
 
--- Password prompt GUI
-local function showPasswordPrompt(callback)
-    local gui = Instance.new("ScreenGui", CoreGui)
-    gui.Name = "DivinusPasswordGui"
-    gui.IgnoreGuiInset = true
-    gui.ResetOnSpawn = false
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "DivinusGUI"
+    screenGui.IgnoreGuiInset = true
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = CoreGui
+    screenGui.Enabled = true
+    print("[DIVINUS GUI] ScreenGui enabled")
 
-    local frame = Instance.new("Frame", gui)
-    frame.Size = UDim2.new(0, 300, 0, 120)
-    frame.Position = UDim2.new(0.5, -150, 0.4, 0)
-    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    frame.BorderSizePixel = 0
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+    local mainFrame = Instance.new("Frame", screenGui)
+    mainFrame.Size = UDim2.new(0, 400, 0, 300)
+    mainFrame.Position = UDim2.new(0.5, -200, 0.4, 0)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Active = true
+    mainFrame.Draggable = true
+    Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
 
-    local label = Instance.new("TextLabel", frame)
-    label.Size = UDim2.new(1, -20, 0, 40)
-    label.Position = UDim2.new(0, 10, 0, 10)
-    label.BackgroundTransparency = 1
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 20
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.Text = "Enter Password to Load Divinus"
+    local sidebar = Instance.new("Frame", mainFrame)
+    sidebar.Size = UDim2.new(0, 100, 1, 0)
+    sidebar.Position = UDim2.new(0, 0, 0, 0)
+    sidebar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    sidebar.BorderSizePixel = 0
+    Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0, 12)
 
-    local box = Instance.new("TextBox", frame)
-    box.Size = UDim2.new(1, -20, 0, 40)
-    box.Position = UDim2.new(0, 10, 0, 60)
-    box.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    box.Font = Enum.Font.Gotham
-    box.TextSize = 24
-    box.PlaceholderText = "Password"
-    box.TextColor3 = Color3.fromRGB(255, 255, 255)
-    box.Text = ""
-    Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6)
+    local contentArea = Instance.new("Frame", mainFrame)
+    contentArea.Size = UDim2.new(1, -100, 1, 0)
+    contentArea.Position = UDim2.new(0, 100, 0, 0)
+    contentArea.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    contentArea.BorderSizePixel = 0
+    Instance.new("UICorner", contentArea).CornerRadius = UDim.new(0, 12)
 
-    local function fail()
-        label.Text = "Wrong Password!"
-        label.TextColor3 = Color3.fromRGB(255, 80, 80)
-        task.wait(2)
-        label.Text = "Enter Password to Load Divinus"
-        label.TextColor3 = Color3.fromRGB(255, 255, 255)
-        box.Text = ""
-    end
+    local categories = {"Aimbot", "Misc", "Settings"}
+    local contentFrames = {}
+    local currentTab = nil
 
-    box.FocusLost:Connect(function(enterPressed)
-        if enterPressed then
-            if box.Text == PASSWORD then
-                gui:Destroy()
-                callback()
-            else
-                fail()
+    for i, name in ipairs(categories) do
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(1, 0, 0, 40)
+        button.Position = UDim2.new(0, 0, 0, (i - 1) * 42)
+        button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        button.Text = name
+        button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        button.Font = Enum.Font.GothamBold
+        button.TextSize = 18
+        button.Parent = sidebar
+        Instance.new("UICorner", button).CornerRadius = UDim.new(0, 8)
+
+        local content = Instance.new("Frame", contentArea)
+        content.Size = UDim2.new(1, 0, 1, 0)
+        content.Position = UDim2.new(0, 0, 0, 0)
+        content.BackgroundTransparency = 1
+        content.Visible = false
+
+        contentFrames[name] = content
+
+        button.MouseButton1Click:Connect(function()
+            if currentTab then
+                currentTab.Visible = false
             end
+            content.Visible = true
+            currentTab = content
+
+            -- Reset all buttons bg color
+            for _, btn in ipairs(sidebar:GetChildren()) do
+                if btn:IsA("TextButton") then
+                    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                end
+            end
+            button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        end)
+
+        if i == 1 then
+            button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+            content.Visible = true
+            currentTab = content
+        end
+    end
+
+    -- RightShift toggle GUI visibility
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.KeyCode == Enum.KeyCode.RightShift then
+            screenGui.Enabled = not screenGui.Enabled
         end
     end)
+
+    return {
+        getTab = function(name)
+            return contentFrames[name]
+        end
+    }
 end
 
--- Main entry point
-showPasswordPrompt(function()
-    print("[DIVINUS] Password accepted, loading GUI...")
-
-    local guiModule = requireFromURL("gui.lua")
-    if not guiModule then return end
-
-    local divinus = guiModule.create()
-
-    local aimbot = requireFromURL("modules/aimbot.lua")
-    local misc = requireFromURL("modules/misc.lua")
-    local settings = requireFromURL("modules/settings.lua")
-
-    if aimbot then aimbot(divinus.getTab("Aimbot")) end
-    if misc then misc(divinus.getTab("Misc")) end
-    if settings then settings(divinus.getTab("Settings")) end
-
-    print("[DIVINUS] GUI loaded successfully.")
-end)
+return module
