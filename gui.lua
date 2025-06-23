@@ -1,9 +1,3 @@
--- gui.lua
--- Builds the main DIVINUS GUI with draggable window, toggle, tabs, and rounded corners
--- Returns: {
---   create = function(): { getTab = function(tabName) -> Frame }
--- }
-
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 
@@ -23,7 +17,6 @@ function module.create()
     mainFrame.BorderSizePixel = 0
     mainFrame.Active = true
     mainFrame.Draggable = true
-
     Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
 
     local sidebar = Instance.new("Frame", mainFrame)
@@ -72,7 +65,7 @@ function module.create()
         if i == 1 then button:MouseButton1Click() end
     end
 
-    -- RightShift to toggle GUI
+    -- RightShift toggle (initial default)
     UserInputService.InputBegan:Connect(function(input, gp)
         if gp then return end
         if input.KeyCode == Enum.KeyCode.RightShift then
