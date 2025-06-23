@@ -11,7 +11,6 @@ return function(container)
     slider.Font = Enum.Font.Gotham
     slider.TextSize = 20
     slider.ClearTextOnFocus = true
-
     Instance.new("UICorner", slider).CornerRadius = UDim.new(0, 6)
 
     slider.FocusLost:Connect(function(enter)
