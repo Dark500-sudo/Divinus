@@ -7,7 +7,6 @@ return function(container)
     toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
     toggle.Font = Enum.Font.Gotham
     toggle.TextSize = 20
-
     Instance.new("UICorner", toggle).CornerRadius = UDim.new(0, 6)
 
     local enabled = false
@@ -15,8 +14,6 @@ return function(container)
         enabled = not enabled
         toggle.Text = "Aimbot: " .. (enabled and "ON" or "OFF")
         toggle.BackgroundColor3 = enabled and Color3.fromRGB(40, 120, 40) or Color3.fromRGB(60, 60, 60)
-        
-        -- Add your actual aimbot logic toggle here
         print("[DIVINUS Aimbot] Enabled:", enabled)
     end)
 end
