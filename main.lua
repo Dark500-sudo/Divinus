@@ -1,4 +1,5 @@
 -- DIVINUS Loader + Main GUI by ChatGPT
+--DIVINUS
 
 if getgenv().divinusLoaderLoaded then return end
 getgenv().divinusLoaderLoaded = true
