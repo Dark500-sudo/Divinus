@@ -1,5 +1,4 @@
 -- DIVINUS Loader + Main GUI by ChatGPT
--- DIVINUS
 
 if getgenv().divinusLoaderLoaded then return end
 getgenv().divinusLoaderLoaded = true
@@ -8,7 +7,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
--- Helper: Hover effect for buttons
+-- Hover effect helper
 local function addHoverEffect(button, hoverColor, normalColor)
     local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
     button.MouseEnter:Connect(function()
@@ -56,7 +55,7 @@ local function makeDraggable(frame)
     end)
 end
 
--- Main container
+-- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "DivinusUI"
 screenGui.ResetOnSpawn = false
@@ -76,7 +75,6 @@ local loaderCorner = Instance.new("UICorner", loaderFrame)
 loaderCorner.CornerRadius = UDim.new(0, 8)
 makeDraggable(loaderFrame)
 
--- Header bar
 local loaderHeader = Instance.new("Frame")
 loaderHeader.Size = UDim2.new(1, 0, 0, 30)
 loaderHeader.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
@@ -93,7 +91,6 @@ loaderTitle.TextSize = 18
 loaderTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 loaderTitle.Parent = loaderHeader
 
--- Password label
 local passLabel = Instance.new("TextLabel")
 passLabel.Size = UDim2.new(1, -40, 0, 30)
 passLabel.Position = UDim2.new(0, 20, 0, 50)
@@ -105,7 +102,9 @@ passLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
 passLabel.TextXAlignment = Enum.TextXAlignment.Left
 passLabel.Parent = loaderFrame
 
--- Password textbox
+-- Password actual input storage
+local realPassword = ""
+
 local passBox = Instance.new("TextBox")
 passBox.Size = UDim2.new(1, -40, 0, 35)
 passBox.Position = UDim2.new(0, 20, 0, 80)
@@ -117,12 +116,10 @@ passBox.TextSize = 18
 passBox.PlaceholderText = "Password"
 passBox.Text = ""
 passBox.TextXAlignment = Enum.TextXAlignment.Left
-passBox.Password = true
 passBox.Parent = loaderFrame
 local passBoxCorner = Instance.new("UICorner", passBox)
 passBoxCorner.CornerRadius = UDim.new(0, 6)
 
--- Submit button
 local submitBtn = Instance.new("TextButton")
 submitBtn.Size = UDim2.new(0, 120, 0, 35)
 submitBtn.Position = UDim2.new(0.5, -60, 0, 130)
@@ -136,7 +133,6 @@ local submitBtnCorner = Instance.new("UICorner", submitBtn)
 submitBtnCorner.CornerRadius = UDim.new(0, 6)
 addHoverEffect(submitBtn, Color3.fromRGB(85, 85, 85), submitBtn.BackgroundColor3)
 
--- Error label (hidden initially)
 local errorLabel = Instance.new("TextLabel")
 errorLabel.Name = "ErrorLabel"
 errorLabel.Size = UDim2.new(1, -40, 0, 25)
@@ -149,6 +145,21 @@ errorLabel.Text = ""
 errorLabel.TextXAlignment = Enum.TextXAlignment.Center
 errorLabel.Parent = loaderFrame
 
+-- Mask input as user types
+passBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local newText = passBox.Text
+    if #newText < #realPassword then
+        -- Backspace/delete
+        realPassword = string.sub(realPassword, 1, #newText)
+    else
+        -- Added characters
+        local added = string.sub(newText, #realPassword + 1)
+        realPassword = realPassword .. added
+    end
+    -- Update displayed text to asterisks
+    passBox.Text = string.rep("*", #realPassword)
+end)
+
 -- ========== MAIN GUI WINDOW ========== --
 
 local mainGuiFrame = Instance.new("Frame")
@@ -158,13 +169,12 @@ mainGuiFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 mainGuiFrame.BorderSizePixel = 0
 mainGuiFrame.Active = true
 mainGuiFrame.Selectable = true
-mainGuiFrame.Visible = false -- hide initially
+mainGuiFrame.Visible = false
 mainGuiFrame.Parent = screenGui
 local mainGuiCorner = Instance.new("UICorner", mainGuiFrame)
 mainGuiCorner.CornerRadius = UDim.new(0, 8)
 makeDraggable(mainGuiFrame)
 
--- Header bar for main GUI
 local mainGuiHeader = Instance.new("Frame")
 mainGuiHeader.Size = UDim2.new(1, 0, 0, 30)
 mainGuiHeader.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
@@ -181,7 +191,6 @@ mainGuiTitle.TextSize = 20
 mainGuiTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 mainGuiTitle.Parent = mainGuiHeader
 
--- Sidebar with Tabs
 local sidebar = Instance.new("Frame")
 sidebar.Size = UDim2.new(0, 120, 1, 0)
 sidebar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -264,29 +273,28 @@ for tabName, btn in pairs(tabButtons) do
     end)
 end
 
--- PASSWORD CHECK FUNCTION
-local function onPasswordEntered(password)
-    local correctPassword = "divinus123" -- Change to your password
-
-    if password == correctPassword then
+-- PASSWORD CHECK
+local function onPasswordEntered()
+    local correctPassword = "divinus123" -- Change this to your desired password
+    if realPassword == correctPassword then
         loaderFrame.Visible = false
         errorLabel.Text = ""
         mainGuiFrame.Visible = true
+        realPassword = "" -- clear stored password
+        passBox.Text = ""
     else
         errorLabel.Text = "Incorrect password. Try again."
     end
 end
 
-submitBtn.MouseButton1Click:Connect(function()
-    onPasswordEntered(passBox.Text)
-end)
+submitBtn.MouseButton1Click:Connect(onPasswordEntered)
 passBox.FocusLost:Connect(function(enterPressed)
     if enterPressed then
-        onPasswordEntered(passBox.Text)
+        onPasswordEntered()
     end
 end)
 
--- TOGGLE GUI WITH RightShift
+-- TOGGLE GUI VISIBILITY
 local guiVisible = true
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
