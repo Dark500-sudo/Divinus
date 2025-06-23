@@ -1,45 +1,43 @@
 return function(container)
     local UserInputService = game:GetService("UserInputService")
     local CoreGui = game:GetService("CoreGui")
+    local HttpService = game:GetService("HttpService")
 
-    -- Config file name
     local configFile = "DivinusConfig.json"
-
-    -- Default config
     local config = {
         Hotkey = Enum.KeyCode.RightShift.Name
     }
 
-    -- Read & write helper functions (exploit APIs)
     local function saveConfig()
         if writefile then
-            local json = game:GetService("HttpService"):JSONEncode(config)
+            local json = HttpService:JSONEncode(config)
             pcall(function() writefile(configFile, json) end)
         end
     end
 
     local function loadConfig()
         if readfile and isfile and isfile(configFile) then
-            local json = pcall(function() return readfile(configFile) end)
-            if json then
-                local decoded = pcall(function()
-                    return game:GetService("HttpService"):JSONDecode(json)
+            local ok, content = pcall(readfile, configFile)
+            if ok and content then
+                local success, decoded = pcall(function()
+                    return HttpService:JSONDecode(content)
                 end)
-                if decoded then config = decoded end
+                if success and decoded then
+                    config = decoded
+                end
             end
         end
     end
 
     loadConfig()
 
-    -- Convert saved hotkey name to Enum.KeyCode
     local function getKeyCodeFromName(name)
         for _, key in pairs(Enum.KeyCode:GetEnumItems()) do
             if key.Name == name then
                 return key
             end
         end
-        return Enum.KeyCode.RightShift -- fallback
+        return Enum.KeyCode.RightShift
     end
 
     local currentKey = getKeyCodeFromName(config.Hotkey)
@@ -94,13 +92,12 @@ return function(container)
             changeKeyBtn.Text = "Change Hotkey"
             listening = false
 
-            -- Save the hotkey to config
             config.Hotkey = currentKey.Name
             saveConfig()
         end
     end)
 
-    -- Update GUI toggle listener
+    -- Listen for toggle hotkey
     local gui = CoreGui:FindFirstChild("DivinusGUI")
     if gui then
         UserInputService.InputBegan:Connect(function(input, gameProcessed)
