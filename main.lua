@@ -1,4 +1,6 @@
 -- DIVINUS Main Loader + Utils
+-- DIVINUS
+
 local PASSWORD = "Divinus123"
 local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
