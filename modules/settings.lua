@@ -1,18 +1,55 @@
--- settings.lua
--- Adds Close GUI button and lets user customize the toggle key
-
 return function(container)
     local UserInputService = game:GetService("UserInputService")
     local CoreGui = game:GetService("CoreGui")
 
-    local currentKey = Enum.KeyCode.RightShift
+    -- Config file name
+    local configFile = "DivinusConfig.json"
+
+    -- Default config
+    local config = {
+        Hotkey = Enum.KeyCode.RightShift.Name
+    }
+
+    -- Read & write helper functions (exploit APIs)
+    local function saveConfig()
+        if writefile then
+            local json = game:GetService("HttpService"):JSONEncode(config)
+            pcall(function() writefile(configFile, json) end)
+        end
+    end
+
+    local function loadConfig()
+        if readfile and isfile and isfile(configFile) then
+            local json = pcall(function() return readfile(configFile) end)
+            if json then
+                local decoded = pcall(function()
+                    return game:GetService("HttpService"):JSONDecode(json)
+                end)
+                if decoded then config = decoded end
+            end
+        end
+    end
+
+    loadConfig()
+
+    -- Convert saved hotkey name to Enum.KeyCode
+    local function getKeyCodeFromName(name)
+        for _, key in pairs(Enum.KeyCode:GetEnumItems()) do
+            if key.Name == name then
+                return key
+            end
+        end
+        return Enum.KeyCode.RightShift -- fallback
+    end
+
+    local currentKey = getKeyCodeFromName(config.Hotkey)
     local listening = false
 
     local keyLabel = Instance.new("TextLabel", container)
     keyLabel.Size = UDim2.new(0, 200, 0, 30)
     keyLabel.Position = UDim2.new(0, 20, 0, 20)
     keyLabel.BackgroundTransparency = 1
-    keyLabel.Text = "Current Hotkey: RightShift"
+    keyLabel.Text = "Current Hotkey: " .. currentKey.Name
     keyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     keyLabel.Font = Enum.Font.Gotham
     keyLabel.TextSize = 18
@@ -53,9 +90,13 @@ return function(container)
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if listening and input.KeyCode ~= Enum.KeyCode.Unknown then
             currentKey = input.KeyCode
-            keyLabel.Text = "Current Hotkey: " .. input.KeyCode.Name
+            keyLabel.Text = "Current Hotkey: " .. currentKey.Name
             changeKeyBtn.Text = "Change Hotkey"
             listening = false
+
+            -- Save the hotkey to config
+            config.Hotkey = currentKey.Name
+            saveConfig()
         end
     end)
 
